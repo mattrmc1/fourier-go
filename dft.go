@@ -3,13 +3,14 @@ package main
 import raylib "github.com/gen2brain/raylib-go/raylib"
 import (
 	"math"
+	"sort"
 )
 
-// TODO: Just use a Vector2
 type Complex struct {
 	real float64
 	imaginary float64
 }
+
 func Add(a Complex, b Complex) Complex {
 	return Complex {
 		a.real + b.real,
@@ -24,10 +25,7 @@ func Multiply(a Complex, b Complex) Complex {
 	}
 }
 
-// Just give a val property of Vector2
 type DiscreteFourierTransform struct {
-	real float64
-	imaginary float64
 	frequency float64
 	amplitude float64
 	phase float64
@@ -60,13 +58,17 @@ func dft(samples []raylib.Vector2) []DiscreteFourierTransform {
 		sum.imaginary = sum.imaginary / float64(N)
 
 		X[k] = DiscreteFourierTransform {
-			real: sum.real,
-			imaginary: sum.imaginary,
 			frequency: float64(k),
 			amplitude: math.Sqrt(sum.real * sum.real + sum.imaginary * sum.imaginary),
 			phase: math.Atan2(sum.imaginary, sum.real),
 		}
 	}
+
+	// Sort by amplitude so the circles will decrease in size
+	// Frequency (k) is stored so sorting shouldn't matter
+	sort.Slice(X, func(i, j int) bool {
+		return X[i].amplitude > X[j].amplitude
+	})
 
 	return X
 }
