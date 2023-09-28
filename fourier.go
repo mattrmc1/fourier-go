@@ -2,8 +2,8 @@ package main
 
 import raylib "github.com/gen2brain/raylib-go/raylib"
 import (
-	"fmt"
 	"math"
+	"sort"
 )
 
 const (
@@ -16,7 +16,9 @@ const (
 var time float32 = 0
 var userState = -1
 var userDrawing []raylib.Vector2
+
 var fourierTransforms []DiscreteFourierTransform
+var fourierPath []raylib.Vector2
 
 func main() {
 	raylib.InitWindow(WIDTH, HEIGHT, "Epicycles")
@@ -34,12 +36,16 @@ func main() {
 func onMouseDown() {
 	userDrawing = nil
 	userState = DRAWING
+	fourierPath = nil
 }
 
 func onMouseUp() {
 	time = 0
 	userState = FOURIER
 	fourierTransforms = dft(userDrawing)
+	sort.Slice(fourierTransforms, func(i, j int) bool {
+		return fourierTransforms[i].amplitude > fourierTransforms[j].amplitude
+	})
 }
 
 func update(dt float32) {
@@ -57,6 +63,7 @@ func update(dt float32) {
 		
 		case FOURIER:
 			if (time > 2 * math.Pi) {
+				fourierPath = nil
 				time = 0
 			}
 
@@ -64,39 +71,23 @@ func update(dt float32) {
 	}
 }
 
-// func calculatePhase() int {
-// 	if (userState == FOURIER) {
-// 		return int(math.Floor(float64(fourierTime / userTime) * float64(len(userDrawing)))) % len(userDrawing)
-// 	}
+func drawEpicycles(x float64, y float64) raylib.Vector2 {
 
-// 	return len(userDrawing)
-// }
+	for i := 0; i < len(fourierTransforms); i++ {
+		var prevX = x + WIDTH / 2
+		var prevY = y + HEIGHT / 2
 
-func drawEpicycles(x int32, y int32) {
+		var k = fourierTransforms[i].frequency
+		var r = fourierTransforms[i].amplitude
+		var offset = fourierTransforms[i].phase
 
-	
-	
-	// Draw arbitrary circles
-	var max = 5
-	for i := 0; i < max; i++ {
-		var n = 2 * i + 1
-		var r float64 = 100 * ( 4 / (float64(n) * math.Pi))
-		raylib.DrawCircleLines(x + WIDTH / 2, y + HEIGHT / 2, float32(r), raylib.RayWhite)
+		x += r * math.Cos(float64(k) * float64(time) + offset)
+		y += r * math.Sin(float64(k) * float64(time) + offset)
 
-		x += int32(math.Floor(r * math.Cos(float64(n) * float64(time))))
-		y += int32(math.Floor(r * math.Sin(float64(n) * float64(time))))
+		raylib.DrawCircleLines(int32(math.Floor(prevX)), int32(math.Floor(prevY)), float32(r), raylib.LightGray)
 	}
 
-	// Draw circles in fourierTransforms
-	// for i := 0; i < len(fourierTransforms	); i++ {
-	// 	var ft = fourierTransforms[i]
-	// 	var n = 2 * i + 1
-	// 	var r float64 = 100 * ( 4 / (float64(n) * math.Pi))
-	// 	raylib.DrawCircleLines(x + WIDTH / 2, y + HEIGHT / 2, float32(r), raylib.RayWhite)
-
-	// 	x += int32(math.Floor(r * math.Cos(float64(n) * float64(time) + ft.phase)))
-	// 	y += int32(math.Floor(r * math.Sin(float64(n) * float64(time) + ft.phase)))
-	// }
+	return raylib.Vector2 { X: float32(x + WIDTH / 2), Y: float32(y + HEIGHT / 2) }
 }
 
 func draw() {
@@ -109,11 +100,10 @@ func draw() {
 		raylib.DrawLineStrip(userDrawing, int32(len(userDrawing)), raylib.RayWhite)
 	}
 
-	if (userState == FOURIER && len(fourierTransforms) > 0) {
-		
-		raylib.DrawText(fmt.Sprint("drawing: ", len(userDrawing)), 100, 400, 48, raylib.RayWhite)
-		raylib.DrawText(fmt.Sprint("transforms: ", len(fourierTransforms)), 100, 200, 48, raylib.RayWhite)
-
-		drawEpicycles(0, 0)
+	if (userState == FOURIER) {		
+		var point = drawEpicycles(0, 0)
+		fourierPath = append(fourierPath, point)
+		raylib.DrawCircleV(point, 5, raylib.Green)
+		raylib.DrawLineStrip(fourierPath, int32(len(fourierPath)), raylib.Green)
 	}
 }

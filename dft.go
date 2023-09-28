@@ -5,6 +5,7 @@ import (
 	"math"
 )
 
+// TODO: Just use a Vector2
 type Complex struct {
 	real float64
 	imaginary float64
@@ -23,7 +24,7 @@ func Multiply(a Complex, b Complex) Complex {
 	}
 }
 
-
+// Just give a val property of Vector2
 type DiscreteFourierTransform struct {
 	real float64
 	imaginary float64
@@ -42,8 +43,8 @@ func dft(samples []raylib.Vector2) []DiscreteFourierTransform {
 
 		for n := 0; n < N; n++ {
 			var Xn = Complex {
-				WIDTH / 2 - float64(samples[n].X),
-				HEIGHT / 2 - float64(samples[n].Y),
+				float64(samples[n].X) - WIDTH / 2,
+				float64(samples[n].Y) - HEIGHT / 2,
 			}
 
 			// ø = (2π/N)•k•n
@@ -61,7 +62,7 @@ func dft(samples []raylib.Vector2) []DiscreteFourierTransform {
 		X[k] = DiscreteFourierTransform {
 			real: sum.real,
 			imaginary: sum.imaginary,
-			frequency: float64(k), // TODO: Redundant - this is just the index of X
+			frequency: float64(k),
 			amplitude: math.Sqrt(sum.real * sum.real + sum.imaginary * sum.imaginary),
 			phase: math.Atan2(sum.imaginary, sum.real),
 		}
