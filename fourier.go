@@ -1,12 +1,13 @@
 package main
 
-import raylib "github.com/gen2brain/raylib-go/raylib"
 import (
 	"math"
+
+	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
 const (
-	WIDTH = 1200
+	WIDTH  = 1200
 	HEIGHT = 800
 )
 
@@ -49,31 +50,31 @@ func onMouseUp() {
 }
 
 func update(dt float32) {
-	if (raylib.IsMouseButtonPressed(raylib.MouseLeftButton)) {
+	if raylib.IsMouseButtonPressed(raylib.MouseLeftButton) {
 		onMouseDown()
 	}
 
-	if (raylib.IsMouseButtonReleased(raylib.MouseLeftButton)) {
+	if raylib.IsMouseButtonReleased(raylib.MouseLeftButton) {
 		onMouseUp()
 	}
 }
 
 func drawEpicycles(x float64, y float64) raylib.Vector2 {
 	for i := 0; i < len(fourierTransforms); i++ {
-		var prevX = x + WIDTH / 2
-		var prevY = y + HEIGHT / 2
+		var prevX = x + WIDTH/2
+		var prevY = y + HEIGHT/2
 
 		var freq = fourierTransforms[i].frequency
 		var radius = fourierTransforms[i].amplitude
 		var phi = fourierTransforms[i].phase
 
-		x += radius * math.Cos(freq * float64(time) + phi)
-		y += radius * math.Sin(freq * float64(time) + phi)
+		x += radius * math.Cos(freq*float64(time)+phi)
+		y += radius * math.Sin(freq*float64(time)+phi)
 
 		raylib.DrawCircleLines(int32(math.Floor(prevX)), int32(math.Floor(prevY)), float32(radius), raylib.LightGray)
 	}
 
-	return raylib.Vector2 { X: float32(x + WIDTH / 2), Y: float32(y + HEIGHT / 2) }
+	return raylib.Vector2{X: float32(x + WIDTH/2), Y: float32(y + HEIGHT/2)}
 }
 
 func draw() {
@@ -83,19 +84,19 @@ func draw() {
 	raylib.ClearBackground(raylib.Black)
 
 	switch state {
-		case DRAWING:
-			userPath = append(userPath, raylib.GetMousePosition())
-			raylib.DrawLineStrip(userPath, int32(len(userPath)), raylib.RayWhite)
-		
-		case FOURIER:
-			if (time > 2 * math.Pi) {
-				fourierPath = nil
-				time = 0
-			}
+	case DRAWING:
+		userPath = append(userPath, raylib.GetMousePosition())
+		raylib.DrawLineStrip(userPath, int32(len(userPath)), raylib.RayWhite)
 
-			time += (2 * math.Pi) / float32(len(fourierTransforms))
+	case FOURIER:
+		if time > 2*math.Pi {
+			fourierPath = nil
+			time = 0
+		}
 
-			fourierPath = append(fourierPath, drawEpicycles(0, 0))
-			raylib.DrawLineStrip(fourierPath, int32(len(fourierPath)), raylib.Green)
+		time += (2 * math.Pi) / float32(len(fourierTransforms))
+
+		fourierPath = append(fourierPath, drawEpicycles(0, 0))
+		raylib.DrawLineStrip(fourierPath, int32(len(fourierPath)), raylib.Green)
 	}
 }
