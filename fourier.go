@@ -31,8 +31,7 @@ func main() {
 	raylib.SetTargetFPS(60)
 
 	for !raylib.WindowShouldClose() {
-		dt := raylib.GetFrameTime()
-		update(dt)
+		update()
 		draw()
 	}
 }
@@ -49,7 +48,7 @@ func onMouseUp() {
 	fourierTransforms = dft(userPath)
 }
 
-func update(dt float32) {
+func update() {
 	if raylib.IsMouseButtonPressed(raylib.MouseLeftButton) {
 		onMouseDown()
 	}
